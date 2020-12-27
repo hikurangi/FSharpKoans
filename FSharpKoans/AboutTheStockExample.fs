@@ -70,12 +70,12 @@ module ``about the stock example`` =
     type DayRecord =
         {
           Date: string
-          Open: float
-          High: float
-          Low: float
-          Close: float
-          Volume: int
-          AdjClose: float
+          // Open: float
+          // High: float
+          // Low: float
+          // Close: float
+          // Volume: int
+          // AdjClose: float
           OpenCloseDiff: float
         }
 
@@ -85,12 +85,12 @@ module ``about the stock example`` =
         ({
           Date = day.[0]
           // float uses CultureInfo.InvariantCulture to parse . as a decimal point
-          Open = openValue
-          High = float day.[2]
-          Low = float day.[3]
-          Close = closeValue
-          Volume = int day.[5]
-          AdjClose = float day.[6]
+          // Open = openValue
+          // High = float day.[2]
+          // Low = float day.[3]
+          // Close = closeValue
+          // Volume = int day.[5]
+          // AdjClose = float day.[6]
           OpenCloseDiff = closeValue - openValue
         })
 
@@ -98,12 +98,12 @@ module ``about the stock example`` =
     let CanFormatAParsedDay() =
         let expected = {
             Date = "2012-03-30"
-            Open = 32.40
-            High = 32.41
-            Low = 32.04
-            Close = 32.26
-            Volume = 31749400
-            AdjClose = 32.26
+            // Open = 32.40
+            // High = 32.41
+            // Low = 32.04
+            // Close = 32.26
+            // Volume = 31749400
+            // AdjClose = 32.26
             OpenCloseDiff = 32.26 - 32.40 // however just writing -0.14 does not work TODO learn why
         }
 

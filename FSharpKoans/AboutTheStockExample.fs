@@ -53,13 +53,104 @@ module ``about the stock example`` =
           "2012-03-02,32.31,32.44,32.00,32.08,47314200,32.08";
           "2012-03-01,31.93,32.39,31.85,32.29,77344100,32.29";
           "2012-02-29,31.89,32.00,31.61,31.74,59323600,31.74"; ]
-    
+  
     // Feel free to add extra [<Koan>] members here to write
     // tests for yourself along the way. You can also try 
     // using the F# Interactive window to check your progress.
+  
+    let splitByComma (x:string) =
+        x.Split([| ',' |])
+    
+    [<Koan>]
+    let CanSplitADayRowByCommas() =
+        let expected = [| "2012-03-30"; "32.40"; "32.41"; "32.04"; "32.26"; "31749400"; "32.26" |]
+        
+        AssertEquality expected (splitByComma stockData.[1])
+
+    type DayRecord =
+        {
+          Date: string
+          Open: float
+          High: float
+          Low: float
+          Close: float
+          Volume: int
+          AdjClose: float
+          OpenCloseDiff: float
+        }
+
+    let formatDayRecord (day:array<string>) =
+        let openValue = float day.[1]
+        let closeValue = float day.[4]
+        ({
+          Date = day.[0]
+          // float uses CultureInfo.InvariantCulture to parse . as a decimal point
+          Open = openValue
+          High = float day.[2]
+          Low = float day.[3]
+          Close = closeValue
+          Volume = int day.[5]
+          AdjClose = float day.[6]
+          OpenCloseDiff = closeValue - openValue
+        })
+
+    [<Koan>]
+    let CanFormatAParsedDay() =
+        let expected = {
+            Date = "2012-03-30"
+            Open = 32.40
+            High = 32.41
+            Low = 32.04
+            Close = 32.26
+            Volume = 31749400
+            AdjClose = 32.26
+            OpenCloseDiff = 32.26 - 32.40 // however just writing -0.14 does not work TODO learn why
+        }
+
+        AssertEquality expected (formatDayRecord [| "2012-03-30"; "32.40"; "32.41"; "32.04"; "32.26"; "31749400"; "32.26" |])
+    
+    let compareDayRecordsReduce (acc:DayRecord) (it:DayRecord) =
+        // crude, especially using '>=' instead of handling equal case separately
+        // need to learn railroad
+        if it.OpenCloseDiff >= acc.OpenCloseDiff then it else acc
+
+    [<Koan>]
+    let CanCompareDayRecords() =
+        let expected = {
+            Date = "2012-03-30"
+            Open = 32.40
+            High = 32.41
+            Low = 32.04
+            Close = 32.26
+            Volume = 31749400
+            AdjClose = 32.26
+            OpenCloseDiff = 4.0
+        }
+
+        let dayRecordList = [
+          expected;
+          {
+            Date = "2020-03-30"
+            Open = 32.40
+            High = 32.41
+            Low = 32.04
+            Close = 32.26
+            Volume = 31749400
+            AdjClose = 32.26
+            OpenCloseDiff = -0.12
+          }]
+
+        AssertEquality expected (List.reduce compareDayRecordsReduce dayRecordList)
 
     [<Koan>]
     let YouGotTheAnswerCorrect() =
-        let result =  __
-        
+        let result =
+            stockData
+            // jump over headers string. would be cool to to this programmatically!
+            |> List.skip 1
+            // we need to manually control the order of operations here when composing the map callbacks inline
+            |> List.map (splitByComma >> formatDayRecord)
+            |> List.reduce compareDayRecordsReduce
+            |> fun day -> day.Date
+            
         AssertEquality "2012-03-13" result

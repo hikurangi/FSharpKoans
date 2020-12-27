@@ -108,49 +108,16 @@ module ``about the stock example`` =
         }
 
         AssertEquality expected (formatDayRecord [| "2012-03-30"; "32.40"; "32.41"; "32.04"; "32.26"; "31749400"; "32.26" |])
-    
-    let compareDayRecordsReduce (acc:DayRecord) (it:DayRecord) =
-        // crude, especially using '>=' instead of handling equal case separately
-        // need to learn railroad
-        if it.OpenCloseDiff >= acc.OpenCloseDiff then it else acc
-
-    [<Koan>]
-    let CanCompareDayRecords() =
-        let expected = {
-            Date = "2012-03-30"
-            Open = 32.40
-            High = 32.41
-            Low = 32.04
-            Close = 32.26
-            Volume = 31749400
-            AdjClose = 32.26
-            OpenCloseDiff = 4.0
-        }
-
-        let dayRecordList = [
-          expected;
-          {
-            Date = "2020-03-30"
-            Open = 32.40
-            High = 32.41
-            Low = 32.04
-            Close = 32.26
-            Volume = 31749400
-            AdjClose = 32.26
-            OpenCloseDiff = -0.12
-          }]
-
-        AssertEquality expected (List.reduce compareDayRecordsReduce dayRecordList)
 
     [<Koan>]
     let YouGotTheAnswerCorrect() =
         let result =
-            stockData
-            // jump over headers string. would be cool to to this programmatically!
-            |> List.skip 1
-            // we need to manually control the order of operations here when composing the map callbacks inline
-            |> List.map (splitByComma >> formatDayRecord)
-            |> List.reduce compareDayRecordsReduce
-            |> fun day -> day.Date
+            (
+              stockData
+              |> List.tail
+              // we need to manually control the order of operations here when composing the map callbacks inline
+              |> List.map (splitByComma >> formatDayRecord)
+              |> List.maxBy (fun it -> it.OpenCloseDiff)
+            ).Date
             
         AssertEquality "2012-03-13" result
